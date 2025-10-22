@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  edge-node-1:
+    image: ubuntu-seal-base:latest
+    container_name: edge-node-1
+    networks:
+      - edge-network
+    stdin_open: true
+    tty: true
+
+  edge-node-2:
+    image: ubuntu-seal-base:latest
+    container_name: edge-node-2
+    networks:
+      - edge-network
+    stdin_open: true
+    tty: true
+
+  fog-aggregator:
+    image: ubuntu-seal-base:latest
+    container_name: fog-aggregator
+    networks:
+      - edge-network
+      - fog-network
+    stdin_open: true
+    tty: true
+
+  cloud-analytics:
+    image: ubuntu-seal-base:latest
+    container_name: cloud-analytics
+    networks:
+      - fog-network
+      - cloud-network
+    stdin_open: true
+    tty: true
+
+networks:
+  edge-network:
+    external: true
+  fog-network:
+    external: true
+  cloud-network:
+    external: true
