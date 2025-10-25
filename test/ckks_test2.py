@@ -1,4 +1,4 @@
-# Develop and Test Basic Encryption-Decryption Cycle with CKKS scheme
+# Basic Encryption-Decryption Cycle with CKKS scheme
 # 
 from seal import *
 import os
