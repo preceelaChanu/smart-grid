@@ -1,3 +1,5 @@
+# Testing setup for CKKS scheme: Encrypt, Decrypt, and Evaluate
+
 from seal import (
     EncryptionParameters, SEALContext, KeyGenerator, CKKSEncoder, Encryptor, Decryptor, Evaluator, scheme_type, CoeffModulus)
 
