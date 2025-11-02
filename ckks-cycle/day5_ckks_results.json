@@ -6,7 +6,7 @@
     "data_points": 1000,
     "acorn_group": "Affluent",
     "encoding_error": 1.897285400393801e-11,
-    "total_error": 8.987052485018136e-10,
+    "total_error": 8.826390668946546e-10,
     "original_mean": 0.29405825715864164,
     "original_std": 0.1384513683877244
 }
