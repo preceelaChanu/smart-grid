@@ -1,0 +1,164 @@
+[
+  {
+    "data_size": 1000,
+    "plaintext_size_bytes": 8000,
+    "plaintext_size_kb": 7.8125,
+    "encoding": {
+      "phase": "encoding",
+      "mean_ms": 0.7783694999716317,
+      "median_ms": 0.84032349991503,
+      "std_ms": 0.11360939745818666,
+      "min_ms": 0.5454669999380712,
+      "max_ms": 0.8741809999719408,
+      "iterations": 10
+    },
+    "encryption": {
+      "phase": "encryption",
+      "mean_ms": 3.77468200003932,
+      "median_ms": 3.597042500018688,
+      "std_ms": 0.3243039689587855,
+      "min_ms": 3.5836470001413545,
+      "max_ms": 4.597479000040039,
+      "ciphertext_size_bytes": 393329,
+      "ciphertext_size_kb": 384.1103515625,
+      "iterations": 10
+    },
+    "decryption": {
+      "phase": "decryption",
+      "mean_ms": 0.19931299998461327,
+      "median_ms": 0.1896190000252318,
+      "std_ms": 0.023078710952155846,
+      "min_ms": 0.18839199992726208,
+      "max_ms": 0.2670880001005571,
+      "iterations": 10
+    },
+    "decoding": {
+      "phase": "decoding",
+      "mean_ms": 1.3222885999994105,
+      "median_ms": 1.362452500075051,
+      "std_ms": 0.1985440857160595,
+      "min_ms": 1.0631550001107826,
+      "max_ms": 1.551314999915121,
+      "iterations": 10
+    },
+    "total_pipeline_latency_ms": 6.0746530999949755,
+    "expansion_ratio": 49.166125,
+    "meets_200ms_target": true,
+    "config_name": "Current (4 primes: 60-40-40-60)",
+    "coeff_modulus": [
+      60,
+      40,
+      40,
+      60
+    ],
+    "num_primes": 4,
+    "balance_score": 0.39929698431248745
+  },
+  {
+    "data_size": 1000,
+    "plaintext_size_bytes": 8000,
+    "plaintext_size_kb": 7.8125,
+    "encoding": {
+      "phase": "encoding",
+      "mean_ms": 0.5852731999993921,
+      "median_ms": 0.6238594999103952,
+      "std_ms": 0.08333132155140252,
+      "min_ms": 0.4065779999109509,
+      "max_ms": 0.6424990001505648,
+      "iterations": 10
+    },
+    "encryption": {
+      "phase": "encryption",
+      "mean_ms": 3.3583612999791512,
+      "median_ms": 3.128508499912641,
+      "std_ms": 0.5379169526491806,
+      "min_ms": 2.9213310001523496,
+      "max_ms": 4.464210999913121,
+      "ciphertext_size_bytes": 262257,
+      "ciphertext_size_kb": 256.1103515625,
+      "iterations": 10
+    },
+    "decryption": {
+      "phase": "decryption",
+      "mean_ms": 0.12956370001120376,
+      "median_ms": 0.1261650000969894,
+      "std_ms": 0.006621200592965045,
+      "min_ms": 0.12599499996213126,
+      "max_ms": 0.14711500011799217,
+      "iterations": 10
+    },
+    "decoding": {
+      "phase": "decoding",
+      "mean_ms": 0.7233096000163641,
+      "median_ms": 0.6582880000678415,
+      "std_ms": 0.1118842142698987,
+      "min_ms": 0.6334619999961433,
+      "max_ms": 0.9799080000902904,
+      "iterations": 10
+    },
+    "total_pipeline_latency_ms": 4.796507800006111,
+    "expansion_ratio": 32.782125,
+    "meets_200ms_target": true,
+    "config_name": "Optimized (3 primes: 60-40-60)",
+    "coeff_modulus": [
+      60,
+      40,
+      60
+    ],
+    "num_primes": 3,
+    "balance_score": 0.2681016210625153
+  },
+  {
+    "data_size": 1000,
+    "plaintext_size_bytes": 8000,
+    "plaintext_size_kb": 7.8125,
+    "encoding": {
+      "phase": "encoding",
+      "mean_ms": 0.3378745999498278,
+      "median_ms": 0.2954364999823156,
+      "std_ms": 0.07046142360016502,
+      "min_ms": 0.2695329999369278,
+      "max_ms": 0.4669719999128574,
+      "iterations": 10
+    },
+    "encryption": {
+      "phase": "encryption",
+      "mean_ms": 2.231279699958577,
+      "median_ms": 2.1910539998089007,
+      "std_ms": 0.0816353634830651,
+      "min_ms": 2.1804780001275503,
+      "max_ms": 2.4342419999356935,
+      "ciphertext_size_bytes": 131185,
+      "ciphertext_size_kb": 128.1103515625,
+      "iterations": 10
+    },
+    "decryption": {
+      "phase": "decryption",
+      "mean_ms": 0.06341450000491022,
+      "median_ms": 0.06310300000222924,
+      "std_ms": 0.00066937109710579,
+      "min_ms": 0.0628469999810477,
+      "max_ms": 0.06471100005001063,
+      "iterations": 10
+    },
+    "decoding": {
+      "phase": "decoding",
+      "mean_ms": 0.2440393999677326,
+      "median_ms": 0.24190649992306135,
+      "std_ms": 0.010498412277270545,
+      "min_ms": 0.23099200006981846,
+      "max_ms": 0.26003500011029246,
+      "iterations": 10
+    },
+    "total_pipeline_latency_ms": 2.8766081998810478,
+    "expansion_ratio": 16.398125,
+    "meets_200ms_target": true,
+    "config_name": "Compact (2 primes: 60-60)",
+    "coeff_modulus": [
+      60,
+      60
+    ],
+    "num_primes": 2,
+    "balance_score": 0.13530187206220262
+  }
+]

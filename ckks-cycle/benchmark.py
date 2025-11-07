@@ -7,11 +7,12 @@ import time
 import gc
 import json
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from datetime import datetime
 import sys
 
 from ckks_encoder import CKKSSmartMeterEncoder
+
 
 class CKKSBenchmark:
     """
@@ -23,7 +24,7 @@ class CKKSBenchmark:
         Initialize benchmark with CKKS components from ckks_encoder.py
         
         Args:
-            context: SEAL/OpenFHE context object
+            context: SEAL context object
             encoder: CKKSEncoder instance
             encryptor: Encryptor instance
             decryptor: Decryptor instance
@@ -34,13 +35,18 @@ class CKKSBenchmark:
         self.encryptor = encryptor
         self.decryptor = decryptor
         self.evaluator = evaluator
+        self.scale = pow(2.0, 40)  # Define scale once
+        self.max_slots = encoder.slot_count()
         
         # Store benchmark results
         self.results = {
             'metadata': {
                 'timestamp': datetime.now().isoformat(),
                 'python_version': sys.version,
-                'test_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'test_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'poly_modulus_degree': context.key_context_data().parms().poly_modulus_degree(),
+                'slot_count': self.max_slots,
+                'scale': self.scale
             },
             'benchmarks': []
         }
@@ -55,7 +61,6 @@ class CKKSBenchmark:
         Returns:
             numpy array of synthetic meter readings
         """
-        # Simulate voltage/power readings (normalized between -2 and 2)
         return np.random.uniform(-2.0, 2.0, size)
     
     def benchmark_encoding(self, data: np.ndarray, iterations: int = 10) -> Dict:
@@ -63,51 +68,37 @@ class CKKSBenchmark:
         Benchmark encoding phase: float array → plaintext
         
         Args:
-            data: Input data array
+            data: Input data array (must be <= slot_count)
             iterations: Number of benchmark repetitions
             
         Returns:
             Dictionary with timing statistics
         """
-        gc.disable()  # Disable garbage collection for consistent timing
+        gc.disable()
         times = []
-        plaintext = None
         
-        # Use the scale we defined (2^40)
-        scale = pow(2.0, 40)
-
-        # Get the maximum number of values we can encode at once
-        max_slots = self.encoder.slot_count()
-        
-        # If data size exceeds slots, only encode up to max_slots
-        data = data[:max_slots]
-        
-        # Warn if we had to truncate
-        if len(data) < len(data):
-            print(f"⚠️  Warning: Data truncated to {max_slots} points due to slot count limitation")
-
-        # Warm-up run to eliminate initialization overhead
-        _ = self.encoder.encode(data, scale)
+        # Warm-up run
+        _ = self.encoder.encode(data, self.scale)
         
         for _ in range(iterations):
             start = time.perf_counter()
-            plaintext = self.encoder.encode(data, scale)
+            plaintext = self.encoder.encode(data, self.scale)
             end = time.perf_counter()
-            times.append((end - start) * 1000)  # Convert to milliseconds
+            times.append((end - start) * 1000)
         
         gc.enable()
         
         return {
             'phase': 'encoding',
-            'mean_ms': np.mean(times),
-            'median_ms': np.median(times),
-            'std_ms': np.std(times),
-            'min_ms': np.min(times),
-            'max_ms': np.max(times),
+            'mean_ms': float(np.mean(times)),
+            'median_ms': float(np.median(times)),
+            'std_ms': float(np.std(times)),
+            'min_ms': float(np.min(times)),
+            'max_ms': float(np.max(times)),
             'iterations': iterations
         }
     
-    def benchmark_encryption(self, plaintext, iterations: int = 10) -> Dict:
+    def benchmark_encryption(self, plaintext, iterations: int = 10) -> tuple:
         """
         Benchmark encryption phase: plaintext → ciphertext
         
@@ -116,7 +107,7 @@ class CKKSBenchmark:
             iterations: Number of benchmark repetitions
             
         Returns:
-            Dictionary with timing and size statistics
+            Tuple of (statistics dict, ciphertext)
         """
         gc.disable()
         times = []
@@ -134,21 +125,21 @@ class CKKSBenchmark:
         gc.enable()
         
         # Measure ciphertext size
-        ciphertext_size = self._get_ciphertext_size(ciphertext)
+        ciphertext_size = ciphertext.save_size()
         
         return {
             'phase': 'encryption',
-            'mean_ms': np.mean(times),
-            'median_ms': np.median(times),
-            'std_ms': np.std(times),
-            'min_ms': np.min(times),
-            'max_ms': np.max(times),
+            'mean_ms': float(np.mean(times)),
+            'median_ms': float(np.median(times)),
+            'std_ms': float(np.std(times)),
+            'min_ms': float(np.min(times)),
+            'max_ms': float(np.max(times)),
             'ciphertext_size_bytes': ciphertext_size,
             'ciphertext_size_kb': ciphertext_size / 1024,
             'iterations': iterations
         }, ciphertext
     
-    def benchmark_decryption(self, ciphertext, iterations: int = 10) -> Dict:
+    def benchmark_decryption(self, ciphertext, iterations: int = 10) -> tuple:
         """
         Benchmark decryption phase: ciphertext → plaintext
         
@@ -157,10 +148,11 @@ class CKKSBenchmark:
             iterations: Number of benchmark repetitions
             
         Returns:
-            Dictionary with timing statistics
+            Tuple of (statistics dict, decrypted plaintext)
         """
         gc.disable()
         times = []
+        plaintext_result = None
         
         # Warm-up
         _ = self.decryptor.decrypt(ciphertext)
@@ -175,13 +167,13 @@ class CKKSBenchmark:
         
         return {
             'phase': 'decryption',
-            'mean_ms': np.mean(times),
-            'median_ms': np.median(times),
-            'std_ms': np.std(times),
-            'min_ms': np.min(times),
-            'max_ms': np.max(times),
+            'mean_ms': float(np.mean(times)),
+            'median_ms': float(np.median(times)),
+            'std_ms': float(np.std(times)),
+            'min_ms': float(np.min(times)),
+            'max_ms': float(np.max(times)),
             'iterations': iterations
-        }
+        }, plaintext_result
     
     def benchmark_decoding(self, plaintext, iterations: int = 10) -> Dict:
         """
@@ -210,11 +202,11 @@ class CKKSBenchmark:
         
         return {
             'phase': 'decoding',
-            'mean_ms': np.mean(times),
-            'median_ms': np.median(times),
-            'std_ms': np.std(times),
-            'min_ms': np.min(times),
-            'max_ms': np.max(times),
+            'mean_ms': float(np.mean(times)),
+            'median_ms': float(np.median(times)),
+            'std_ms': float(np.std(times)),
+            'min_ms': float(np.min(times)),
+            'max_ms': float(np.max(times)),
             'iterations': iterations
         }
     
@@ -237,28 +229,24 @@ class CKKSBenchmark:
         test_data = self.generate_test_data(data_size)
         
         # Check if data size exceeds available slots
-        max_slots = self.encoder.slot_count()
-        if data_size > max_slots:
-            print(f"⚠️  Note: Data size ({data_size}) exceeds available slots ({max_slots})")
-            print(f"   Benchmarking with {max_slots} points instead")
-            test_data = test_data[:max_slots]
-            data_size = max_slots
+        if data_size > self.max_slots:
+            print(f"⚠️  Note: Data size ({data_size}) exceeds available slots ({self.max_slots})")
+            print(f"   Benchmarking with {self.max_slots} points instead")
+            test_data = test_data[:self.max_slots]
+            data_size = self.max_slots
         
         # Benchmark each phase
         print("→ Benchmarking encoding...")
         encoding_results = self.benchmark_encoding(test_data, iterations)
         
-        # Get plaintext for next phases using scale = 2^40
-        plaintext = self.encoder.encode(test_data, pow(2.0, 40))
+        # Get plaintext for next phases
+        plaintext = self.encoder.encode(test_data, self.scale)
         
         print("→ Benchmarking encryption...")
         encryption_results, ciphertext = self.benchmark_encryption(plaintext, iterations)
         
         print("→ Benchmarking decryption...")
-        decryption_results = self.benchmark_decryption(ciphertext, iterations)
-        
-        # Get decrypted plaintext for decoding
-        decrypted_plaintext = self.decryptor.decrypt(ciphertext)
+        decryption_results, decrypted_plaintext = self.benchmark_decryption(ciphertext, iterations)
         
         print("→ Benchmarking decoding...")
         decoding_results = self.benchmark_decoding(decrypted_plaintext, iterations)
@@ -297,15 +285,13 @@ class CKKSBenchmark:
         Run complete benchmark suite across multiple data sizes
         
         Args:
-            data_sizes: List of data sizes to test (default: [128, 512, 1024, 2048, 4096])
+            data_sizes: List of data sizes to test
             iterations: Number of repetitions per test
         """
         if data_sizes is None:
-            # Use powers of 2 up to the maximum slot count
-            max_slots = self.encoder.slot_count()
             data_sizes = [
                 size for size in [128, 512, 1024, 2048, 4096]
-                if size <= max_slots
+                if size <= self.max_slots
             ]
         
         print("\n" + "="*70)
@@ -314,25 +300,13 @@ class CKKSBenchmark:
         print(f"Test configurations: {len(data_sizes)} data sizes")
         print(f"Iterations per test: {iterations}")
         print(f"Target latency: <200ms per operation")
+        print(f"Available slots: {self.max_slots}")
         print("="*70)
         
         for size in data_sizes:
             self.benchmark_full_pipeline(size, iterations)
         
         self._print_summary()
-    
-    def _get_ciphertext_size(self, ciphertext) -> int:
-        """
-        Calculate serialized ciphertext size in bytes
-        
-        Args:
-            ciphertext: Ciphertext object
-            
-        Returns:
-            Size in bytes
-        """
-        # For Microsoft SEAL, we use save_size() to get the serialized size
-        return ciphertext.save_size()
     
     def _print_summary(self):
         """Print formatted summary of all benchmark results"""
@@ -358,34 +332,25 @@ class CKKSBenchmark:
         Args:
             filename: Output filename
         """
-        # Convert NumPy values to native Python types
-        def convert_to_native(obj):
-            if isinstance(obj, (np.integer, np.floating)):
-                return float(obj)
-            elif isinstance(obj, np.bool_):
-                return bool(obj)
-            elif isinstance(obj, np.ndarray):
-                return obj.tolist()
-            elif isinstance(obj, dict):
-                return {key: convert_to_native(value) for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [convert_to_native(item) for item in obj]
-            return obj
-
-        # Convert results to JSON-serializable format
-        json_results = convert_to_native(self.results)
-        
         with open(filename, 'w') as f:
-            json.dump(json_results, f, indent=2)
+            json.dump(self.results, f, indent=2)
         print(f"\n✓ Results saved to: {filename}")
 
 
-# Usage example
 if __name__ == "__main__":
-    # Initialize CKKS components
-    encoder_system = CKKSSmartMeterEncoder(poly_modulus_degree=8192, keys_dir='keys')
+    print("\n" + "#"*70)
+    print("DAY 6: CKKS BENCHMARKING FRAMEWORK - STEP 1")
+    print("#"*70)
     
-    # Create benchmark instance with components from the encoder system
+    # Initialize CKKS components from Day 5
+    print("\n→ Initializing CKKS system...")
+    encoder_system = CKKSSmartMeterEncoder(
+        poly_modulus_degree=8192,
+        keys_dir='keys'
+    )
+    
+    # Create benchmark instance
+    print("\n→ Creating benchmark instance...")
     benchmark = CKKSBenchmark(
         context=encoder_system.context,
         encoder=encoder_system.encoder,
@@ -394,11 +359,15 @@ if __name__ == "__main__":
         evaluator=encoder_system.evaluator
     )
     
-    # Run benchmark suite with different data sizes
+    # Run benchmark suite
     benchmark.run_benchmark_suite(
-        data_sizes=[100, 500, 1000, 5000, 10000],
+        data_sizes=[100, 500, 1000, 2048, 4096],
         iterations=10
     )
     
-    # Save results to JSON file
-    benchmark.save_results('ckks_benchmark_results.json')
+    # Save results
+    benchmark.save_results('day6_benchmark_results.json')
+    
+    print("\n" + "#"*70)
+    print("DAY 6 - STEP 1: BENCHMARKING FRAMEWORK COMPLETE ✓")
+    print("#"*70)
