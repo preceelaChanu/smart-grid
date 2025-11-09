@@ -4,6 +4,6 @@ A Real-Time Framework for Privacy-Preserving Smart Grid Analytics using Levelled
 
 
 System Architecture
-1. Edge layer -> Smart Meters (SMs)
-2. Fog/Edge Aggregation layer -> Dedicated Aggregators (DAs Servers)
-3. Could/Control layer -> Electrical Service Provider (E Grid Analytics Engine)
+1. The Smart Meters (Clients)
+2. The Analytic Server (Server)
+3. Logger
