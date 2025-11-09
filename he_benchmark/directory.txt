@@ -1,0 +1,3 @@
+For running include directory as such
+
+-I/usr/local/include/SEAL-4.0 -L/usr/local/lib -lseal-4.0 -pthread
