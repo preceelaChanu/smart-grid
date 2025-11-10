@@ -1,6 +1,6 @@
 # smart-grid
 
-A Real-Time Framework for Privacy-Preserving Smart Grid Analytics using Levelled Homomorphic Encryption
+A Real-Time Framework for Privacy-Preserving Smart Grid Analytics using Levelled Homomorphic Encryption via CKKS
 
 
 System Architecture
